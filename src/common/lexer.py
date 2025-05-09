@@ -9,6 +9,7 @@ tokens = (
     "MINUS",
     "TIMES",
     "DIVIDE",
+    "POWER",
     "LPAREN",
     "RPAREN",
     "ID",
@@ -23,6 +24,7 @@ t_DIVIDE = r"/"
 t_LPAREN = r"\("
 t_RPAREN = r"\)"
 t_EQUALS = r"="
+t_POWER = r"\^"
 t_ignore = " \t"
 
 
