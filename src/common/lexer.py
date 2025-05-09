@@ -3,20 +3,19 @@
 from ply import lex
 
 tokens = (
-    "INTEGER",
-    "FLOAT",
+    "NUMBER",
     "PLUS",
     "MINUS",
     "TIMES",
     "DIVIDE",
-    "POWER",
     "LPAREN",
     "RPAREN",
     "ID",
     "EQUALS",
+    "POWER",
 )
 
-# pylint: disable=C0103
+# pylint: disable=C0103,W0107,W0613
 t_PLUS = r"\+"
 t_MINUS = r"-"
 t_TIMES = r"\*"
@@ -27,25 +26,29 @@ t_EQUALS = r"="
 t_POWER = r"\^"
 t_ignore = " \t"
 
+t_ID = r"[a-zA-Z_][a-zA-Z0-9_]*"
 
-def t_FLOAT(t):
-    r"\d+\.\d+"
-    t.value = float(t.value)
+
+def t_NUMBER(t):
+    r"\d+(\.\d+)?"
+    if "." in t.value:
+        t.value = float(t.value)
+    else:
+        t.value = int(t.value)
     return t
 
 
-def t_INTEGER(t):
-    r"\d+"
-    t.value = int(t.value)
-    return t
+def t_COMMENT_LINE(t):
+    r"//.*"
+    pass
 
 
-def t_ID(t):
-    r"[a-zA-Z_][a-zA-Z0-9_]*"
-    return t
+def t_COMMENT_BLOCK(t):
+    r"/\*.*?\*/"
+    pass
 
 
-# pylint: enable=C0103
+# pylint: enable=C0103,W0107,W0613
 
 
 def t_error(t):

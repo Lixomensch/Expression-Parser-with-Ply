@@ -1,6 +1,6 @@
 """Main module."""
 
-from .common import parser, print_ast
+from .common import eval_ast, parser, print_ast
 
 
 def main():
@@ -18,16 +18,20 @@ def main():
     print("Digite expressões matemáticas. Use 'exit' para sair.")
     while True:
         try:
-            expr = input("calc > ")
-            if expr.lower() in ["exit", "quit"]:
+            line = input("calc > ")
+            if line.strip() == "exit":
                 break
-
-            result = parser.parse(expr)
-
-            if result is not None:
-                print("AST:", print_ast(result))
+            ast = parser.parse(line)
+            if ast is not None:
+                print("AST:", print_ast(ast))
+                result = eval_ast(ast)
+                print("Resultado:", result)
+        except EOFError:
+            break
         except SyntaxError as e:
-            print("Erro de sintaxe:", e)
+            print(f"Erro de sintaxe: {e}")
+        except ValueError as e:
+            print(f"Erro de valor: {e}")
 
 
 if __name__ == "__main__":
