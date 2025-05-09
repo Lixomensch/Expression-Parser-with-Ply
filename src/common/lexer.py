@@ -2,7 +2,17 @@
 
 from ply import lex
 
-tokens = ("NUMBER", "PLUS", "MINUS", "TIMES", "DIVIDE", "LPAREN", "RPAREN")
+tokens = (
+    "NUMBER",
+    "PLUS",
+    "MINUS",
+    "TIMES",
+    "DIVIDE",
+    "LPAREN",
+    "RPAREN",
+    "ID",
+    "EQUALS",
+)
 
 # pylint: disable=C0103
 t_PLUS = r"\+"
@@ -11,6 +21,7 @@ t_TIMES = r"\*"
 t_DIVIDE = r"/"
 t_LPAREN = r"\("
 t_RPAREN = r"\)"
+t_EQUALS = r"="
 
 t_ignore = " \t"
 
@@ -18,6 +29,11 @@ t_ignore = " \t"
 def t_NUMBER(t):
     r"\d+(\.\d+)?"
     t.value = float(t.value)
+    return t
+
+
+def t_ID(t):
+    r"[a-zA-Z_][a-zA-Z_0-9]*"
     return t
 
 

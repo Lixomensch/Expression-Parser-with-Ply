@@ -1,6 +1,12 @@
 """Modulo parser."""
 
+import math
+
 from ply import yacc
+
+from .lexer import tokens  # pylint: disable=W0611
+
+names = {}
 
 precedence = (
     ("left", "PLUS", "MINUS"),
@@ -37,6 +43,43 @@ def p_expression_group(p):
 def p_expression_uminus(p):
     "expression : MINUS expression %prec UMINUS"
     p[0] = -p[2]
+
+
+def p_statement_assign(p):
+    "expression : ID EQUALS expression"
+    names[p[1]] = p[3]
+    p[0] = p[3]
+
+
+def p_expression_var(p):
+    "expression : ID"
+    try:
+        p[0] = names[p[1]]
+    except KeyError:
+        print(f"Erro: variável '{p[1]}' não definida")
+        p[0] = 0
+
+
+def p_expression_func(p):
+    """
+    expression : ID LPAREN expression RPAREN
+    """
+    func_name = p[1]
+    arg = p[3]
+
+    funcs = {
+        "sin": math.sin,
+        "cos": math.cos,
+        "sqrt": math.sqrt,
+        "log": math.log,
+        "exp": math.exp,
+    }
+
+    if func_name in funcs:
+        p[0] = funcs[func_name](arg)
+    else:
+        print(f"Erro: função '{func_name}' não suportada")
+        p[0] = 0
 
 
 def p_error(p):

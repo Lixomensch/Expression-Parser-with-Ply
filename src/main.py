@@ -1,6 +1,6 @@
 """Main module."""
 
-from .common import parser
+from .common import names, parser
 
 
 def main():
@@ -21,7 +21,12 @@ def main():
             expr = input("calc > ")
             if expr.lower() in ["exit", "quit"]:
                 break
+            if expr.lower() == "vars":
+                print("Variáveis:", names)
+                continue
+
             result = parser.parse(expr)
+
             if result is not None:
                 print("Resultado:", result)
         except SyntaxError as e:
