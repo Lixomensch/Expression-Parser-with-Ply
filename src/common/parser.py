@@ -15,9 +15,34 @@ precedence = (
 )
 
 
-def p_expression_number(p):
-    "expression : NUMBER"
+def p_statement_expr(p):
+    "statement : expression"
     p[0] = p[1]
+
+
+def p_statement_assign(p):
+    "statement : ID EQUALS expression"
+    names[p[1]] = p[3]
+    p[0] = p[3]
+
+
+def p_expression_integer(p):
+    "expression : INTEGER"
+    p[0] = int(p[1])
+
+
+def p_expression_float(p):
+    "expression : FLOAT"
+    p[0] = float(p[1])
+
+
+def p_expression_var(p):
+    "expression : ID"
+    try:
+        p[0] = names[p[1]]
+    except KeyError:
+        print(f"Undefined variable '{p[1]}'")
+        p[0] = 0
 
 
 def p_expression_binop(p):
@@ -45,40 +70,16 @@ def p_expression_uminus(p):
     p[0] = -p[2]
 
 
-def p_statement_assign(p):
-    "expression : ID EQUALS expression"
-    names[p[1]] = p[3]
-    p[0] = p[3]
-
-
-def p_expression_var(p):
-    "expression : ID"
-    try:
-        p[0] = names[p[1]]
-    except KeyError:
-        print(f"Erro: variável '{p[1]}' não definida")
-        p[0] = 0
-
-
 def p_expression_func(p):
-    """
-    expression : ID LPAREN expression RPAREN
-    """
+    """expression : ID LPAREN expression RPAREN"""
     func_name = p[1]
     arg = p[3]
-
-    funcs = {
-        "sin": math.sin,
-        "cos": math.cos,
-        "sqrt": math.sqrt,
-        "log": math.log,
-        "exp": math.exp,
-    }
-
-    if func_name in funcs:
-        p[0] = funcs[func_name](arg)
+    if func_name == "sin":
+        p[0] = math.sin(arg)
+    elif func_name == "sqrt":
+        p[0] = math.sqrt(arg)
     else:
-        print(f"Erro: função '{func_name}' não suportada")
+        print(f"Unknown function '{func_name}'")
         p[0] = 0
 
 

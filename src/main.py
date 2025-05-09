@@ -22,7 +22,11 @@ def main():
             if expr.lower() in ["exit", "quit"]:
                 break
             if expr.lower() == "vars":
-                print("Variáveis:", names)
+                if names:
+                    for k, v in names.items():
+                        print(f"{k} = {v} ({type(v).__name__})")
+                else:
+                    print("No variables defined.")
                 continue
 
             result = parser.parse(expr)

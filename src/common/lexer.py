@@ -3,7 +3,8 @@
 from ply import lex
 
 tokens = (
-    "NUMBER",
+    "INTEGER",
+    "FLOAT",
     "PLUS",
     "MINUS",
     "TIMES",
@@ -22,18 +23,23 @@ t_DIVIDE = r"/"
 t_LPAREN = r"\("
 t_RPAREN = r"\)"
 t_EQUALS = r"="
-
 t_ignore = " \t"
 
 
-def t_NUMBER(t):
-    r"\d+(\.\d+)?"
+def t_FLOAT(t):
+    r"\d+\.\d+"
     t.value = float(t.value)
     return t
 
 
+def t_INTEGER(t):
+    r"\d+"
+    t.value = int(t.value)
+    return t
+
+
 def t_ID(t):
-    r"[a-zA-Z_][a-zA-Z_0-9]*"
+    r"[a-zA-Z_][a-zA-Z0-9_]*"
     return t
 
 
