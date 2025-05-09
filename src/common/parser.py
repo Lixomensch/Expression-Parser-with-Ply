@@ -1,12 +1,8 @@
 """Modulo parser."""
 
-import math
-
 from ply import yacc
 
 from .lexer import tokens  # pylint: disable=W0611
-
-names = {}
 
 precedence = (
     ("left", "PLUS", "MINUS"),
@@ -23,27 +19,22 @@ def p_statement_expr(p):
 
 def p_statement_assign(p):
     "statement : ID EQUALS expression"
-    names[p[1]] = p[3]
-    p[0] = p[3]
+    p[0] = ("assign", p[1], p[3])
 
 
-def p_expression_integer(p):
-    "expression : INTEGER"
-    p[0] = int(p[1])
+def p_expression_number(p):
+    """expression : INTEGER
+    | FLOAT"""
+
+    if isinstance(p[1], int):
+        p[0] = ("int", p[1])
+    else:
+        p[0] = ("float", p[1])
 
 
-def p_expression_float(p):
-    "expression : FLOAT"
-    p[0] = float(p[1])
-
-
-def p_expression_var(p):
+def p_expression_id(p):
     "expression : ID"
-    try:
-        p[0] = names[p[1]]
-    except KeyError:
-        print(f"Undefined variable '{p[1]}'")
-        p[0] = 0
+    p[0] = ("var", p[1])
 
 
 def p_expression_binop(p):
@@ -52,16 +43,7 @@ def p_expression_binop(p):
     | expression TIMES expression
     | expression DIVIDE expression
     | expression POWER expression"""
-    if p[2] == "+":
-        p[0] = p[1] + p[3]
-    elif p[2] == "-":
-        p[0] = p[1] - p[3]
-    elif p[2] == "*":
-        p[0] = p[1] * p[3]
-    elif p[2] == "/":
-        p[0] = p[1] / p[3]
-    elif p[2] == "^":
-        p[0] = p[1] ** p[3]
+    p[0] = (p[2], p[1], p[3])
 
 
 def p_expression_group(p):
@@ -71,20 +53,12 @@ def p_expression_group(p):
 
 def p_expression_uminus(p):
     "expression : MINUS expression %prec UMINUS"
-    p[0] = -p[2]
+    p[0] = ("neg", p[2])
 
 
 def p_expression_func(p):
     """expression : ID LPAREN expression RPAREN"""
-    func_name = p[1]
-    arg = p[3]
-    if func_name == "sin":
-        p[0] = math.sin(arg)
-    elif func_name == "sqrt":
-        p[0] = math.sqrt(arg)
-    else:
-        print(f"Unknown function '{func_name}'")
-        p[0] = 0
+    p[0] = ("call", p[1], p[3])
 
 
 def p_error(p):
@@ -103,6 +77,17 @@ def p_error(p):
         print(f"Erro sintático no token '{p.value}'")
     else:
         print("Erro sintático: entrada incompleta")
+
+
+def print_ast(node):
+    """
+    Imprime a árvore sintática em forma de expressão prefixa.
+    Exemplo: ('+', 3, 5) -> (+ 3 5)
+    """
+    if isinstance(node, tuple):
+        return f"({node[0]} {' '.join(print_ast(child) for child in node[1:])})"
+
+    return str(node)
 
 
 parser = yacc.yacc()
