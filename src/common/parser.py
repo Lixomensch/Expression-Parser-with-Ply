@@ -31,17 +31,21 @@ def p_expression_number(p):
     """expression : NUMBER"""
     p[0] = p[1]
 
+
 def p_empty(p):
-    'empty :'
-    pass
+    "empty :"
+    p[0] = None
+
 
 def p_statements_multiple(p):
-    'statements : statements statement'
+    "statements : statements statement"
     p[0] = p[1] + [p[2]]
 
+
 def p_statements_single(p):
-    'statements : statement'
+    "statements : statement"
     p[0] = [p[1]]
+
 
 def p_expression_id(p):
     "expression : ID"
@@ -49,19 +53,40 @@ def p_expression_id(p):
 
 
 def eval_ast_in_env(ast, local_env):
-    global env
-    old_env = env
-    env = local_env
+    """
+    Evaluates an abstract syntax tree (AST) in the given local environment.
+
+    This function is useful for evaluating ASTs in the context of a function call,
+    where local variables need to be taken into account.
+
+    :param ast: The root node of the AST to be evaluated.
+    :param local_env: A dictionary representing a local variable environment.
+    :return: The result of the evaluation of the AST.
+    """
+    old_env = env.copy()
+    env.update(local_env)
     try:
-        return eval_ast(ast)
+        return eval_ast(ast, env)
     except ReturnValue as r:
         return r.value
     finally:
-        env = old_env
+        env.clear()
+        env.update(old_env)
+
 
 class ReturnValue(Exception):
+    """
+    Exception class used to return a value from a function.
+    """
+
     def __init__(self, value):
+        """
+        Initializes a ReturnValue instance with the given value.
+
+        :param value: The value to be stored in the ReturnValue instance.
+        """
         self.value = value
+
 
 def eval_ast(node, local_env=None):
     """
@@ -101,27 +126,34 @@ def eval_ast(node, local_env=None):
             "<=": lambda: eval_ast(node[1]) <= eval_ast(node[2]),
             ">=": lambda: eval_ast(node[1]) >= eval_ast(node[2]),
             "neg": lambda: -eval_ast(node[1], env_to_use),
-            "assign": lambda: env_to_use.update({node[1]: eval_ast(node[2], env_to_use)}) or env_to_use[node[1]],
+            "assign": lambda: env_to_use.update(
+                {node[1]: eval_ast(node[2], env_to_use)}
+            )
+            or env_to_use[node[1]],
             "var": lambda: eval_variable(node[1]),
             "call": lambda: eval_function_call(node[1], node[2], env_to_use),
             "if": lambda: eval_if(node[1], node[2]),
-            "if-else": lambda: eval_ast(node[2]) if eval_ast(node[1]) else eval_ast(node[3]),
+            "if-else": lambda: (
+                eval_ast(node[2]) if eval_ast(node[1]) else eval_ast(node[3])
+            ),
             "while": lambda: eval_while(node[1], node[2]),
             "block": lambda: eval_block(node[1]),
-            "return": lambda: (_ := eval_ast(node[1], env_to_use), (_ for _ in ()).throw(ReturnValue(_[1]))),
+            "return": lambda: (
+                _ := eval_ast(node[1], env_to_use),
+                (_ for _ in ()).throw(ReturnValue(_[1])),
+            ),
             "def": lambda: functions.update({node[1]: (node[2], node[3])}),
+            "print": lambda: print(eval_ast(node[1])),
+            "set": lambda: env.update({node[1]: eval_ast(node[2])}),
         }
 
         if op in operations:
             return operations[op]()
 
-        print(f"Erro: operador desconhecido '{op}'")
+        print(f"Error: unknown operation '{op}'")
         return 0
     return 0
 
-def error_undefined_var(name):
-    print(f"Erro: variável '{name}' não definida.")
-    return 0
 
 math_functions = {
     "sin": math.sin,
@@ -129,15 +161,33 @@ math_functions = {
     "sqrt": math.sqrt,
 }
 
+
 def eval_function_call(name, arg_nodes, env_to_use):
+    """
+    Evaluates a function call by looking up the function in the global environment.
+
+    If the function is found, it evaluates each argument and calls the function with the
+    evaluated arguments. If the function is a built-in function, it calls the corresponding
+    function from the math module.
+
+    If the function is not found, it prints an error message and returns 0.
+
+    :param name: The name of the function to be called.
+    :param arg_nodes: A list of nodes representing the arguments to the function.
+    :param env_to_use: The environment to be used for evaluation.
+    :return: The result of the function call, or 0 if an error occurred.
+    """
     if name in functions:
         params, body = functions[name]
         if len(params) != len(arg_nodes):
-            print(f"Erro: função '{name}' esperava {len(params)} argumentos, recebeu {len(arg_nodes)}.")
+            print(
+                f"Error: function '{name}' expected {len(params)}"
+                f"arguments, received {len(arg_nodes)}."
+            )
             return 0
         local_env = env.copy()
-        for i in range(len(params)):
-            local_env[params[i]] = eval_ast(arg_nodes[i], env_to_use)
+        for param, arg_node in zip(params, arg_nodes):
+            local_env[param] = eval_ast(arg_node, env_to_use)
         try:
             return eval_ast(body, local_env)
         except ReturnValue as r:
@@ -146,14 +196,25 @@ def eval_function_call(name, arg_nodes, env_to_use):
         arg = eval_ast(arg_nodes[0], env_to_use)
         return math_functions[name](arg)
     else:
-        print(f"Erro: função '{name}' não definida.")
+        print(f"Error: function '{name}' not found.")
         return 0
 
+
 def eval_variable(name):
+    """
+    Evaluates a variable by looking it up in the global environment.
+
+    If the variable does not exist in the global environment, it prints an error
+    message and returns 0.
+
+    :param name: The name of the variable to be evaluated.
+    :return: The value of the variable, or 0 if it does not exist.
+    """
     if name in env:
         return env[name]
-    print(f"Erro: variável '{name}' não definida.")
+    print(f"Error: variable '{name}' not found.")
     return 0
+
 
 def eval_if(condition, block):
     """Evaluates the 'if' expression."""
@@ -161,11 +222,12 @@ def eval_if(condition, block):
         return eval_block(block)
     return None
 
+
 def eval_while(condition, block):
     """Evaluates the 'while' loop."""
     while eval_ast(condition):
         eval_block(block)
-    return env.get('x', 0)
+    return env.get("x", 0)
 
 
 def eval_block(statements):
@@ -174,14 +236,6 @@ def eval_block(statements):
     for stmt in statements:
         result = eval_ast(stmt)
     return result
-
-
-def eval_variable(name):
-    """Evaluate variable lookups."""
-    if name in env:
-        return env[name]
-    print(f"Erro: variável '{name}' não definida.")
-    return 0
 
 
 def p_expression_binop(p):
@@ -207,26 +261,41 @@ def p_expression_func(p):
     """expression : ID LPAREN expression RPAREN"""
     p[0] = ("call", p[1], p[3])
 
+
 def p_statement_if(p):
-    'statement : IF LPAREN expression RPAREN block'
-    p[0] = ('if', p[3], p[5])
+    "statement : IF LPAREN expression RPAREN block"
+    p[0] = ("if", p[3], p[5])
+
 
 def p_statement_if_else(p):
-    'statement : IF LPAREN expression RPAREN block ELSE block'
-    p[0] = ('if-else', p[3], p[5], p[7])
+    "statement : IF LPAREN expression RPAREN block ELSE block"
+    p[0] = ("if-else", p[3], p[5], p[7])
+
 
 def p_statement_while(p):
-    'statement : WHILE LPAREN expression RPAREN block'
-    p[0] = ('while', p[3], p[5])
+    "statement : WHILE LPAREN expression RPAREN block"
+    p[0] = ("while", p[3], p[5])
+
 
 def p_statement_function(p):
-    'statement : DEF ID LPAREN opt_params RPAREN block'
-    p[0] = ('def', p[2], p[4], p[6])
+    "statement : DEF ID LPAREN opt_params RPAREN block"
+    p[0] = ("def", p[2], p[4], p[6])
+
+
+def p_statement_print(p):
+    """statement : PRINT expression"""
+    print(eval_ast(p[2]))
+
+
+def p_statement_set(p):
+    """statement : SET ID EQUALS expression"""
+    env[p[2]] = eval_ast(p[4])
+
 
 def p_opt_params(p):
-    '''opt_params : ID
-                  | ID COMMA opt_params
-                  | empty'''
+    """opt_params : ID
+    | ID COMMA opt_params
+    | empty"""
     if len(p) == 2:
         p[0] = [p[1]]
     elif len(p) == 4:
@@ -234,20 +303,24 @@ def p_opt_params(p):
     else:
         p[0] = []
 
+
 def p_expression_comparison(p):
-    '''
+    """
     expression : expression LT expression
                | expression GT expression
-    '''
+    """
     p[0] = (p[2], p[1], p[3])
 
+
 def p_statement_return(p):
-    'statement : RETURN expression'
-    p[0] = ('return', p[2])
+    "statement : RETURN expression"
+    p[0] = ("return", p[2])
+
 
 def p_block(p):
-    'block : LBRACE statements RBRACE'
-    p[0] = ('block', p[2])
+    "block : LBRACE statements RBRACE"
+    p[0] = ("block", p[2])
+
 
 def p_error(p):
     """
@@ -260,20 +333,20 @@ def p_error(p):
     if p:
         if p.type in ["PLUS", "MINUS", "TIMES", "DIVIDE", "POWER"]:
             print(
-                f"Erro: operador '{p.value}' extra. Sugestão: Remova o operador extra."
+                f"Error: operator '{p.type}' without operand. Suggestion: Add an operand before it."
             )
         elif p.type == "LPAREN":
             print(
-                "Erro: parêntese de abertura sem fechamento. Sugestão: Adicione um ')' no final."
+                "Error: opening parenthesis without a closing one. Suggestion: Add a ')' at the end."
             )
         elif p.type == "RPAREN":
             print(
-                "Erro: parêntese de fechamento sem abertura. Sugestão: Adicione um '(' antes."
+                "Error: closing parenthesis without an opening one. Suggestion: Add a '(' at the end."
             )
         else:
-            print(f"Erro sintático no token '{p.value}'.")
+            print(f"Syntax error at token '{p.value}'.")
     else:
-        print("Erro sintático: entrada incompleta. Sugestão: Adicione um ')' no final.")
+        print("Syntax error: incomplete input. Suggestion: Add a ')' at the end.")
 
 
 def print_ast(node):
