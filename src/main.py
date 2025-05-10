@@ -7,29 +7,34 @@ from .common import eval_ast, parser, print_ast
 
 def process_file(file_path):
     """
-    Reads a file and processes mathematical expressions line by line.
+    Reads a file and processes it as a whole block.
 
-    :param file_path: The path to the file containing expressions to be processed.
+    :param file_path: The path to the file containing code.
     :return: None
     """
     try:
         with open(file_path, "r", encoding="utf-8") as file:
-            for line in file:
-                line = line.strip()
-                if not line:
-                    continue
+            content = file.read()
 
-                print(f"Processing: {line}")
-                try:
-                    ast = parser.parse(line)
+        if not content.strip():
+            print("File is empty.")
+            return
+
+        try:
+            asts = parser.parse(content)
+            if isinstance(asts, list):
+                for ast in asts:
                     if ast is not None:
                         print("AST:", print_ast(ast))
-                        result = eval_ast(ast)
-                        print("Result:", result)
-                except SyntaxError as e:
-                    print(f"Syntax error: {e}")
-                except ValueError as e:
-                    print(f"Value error: {e}")
+            else:
+                if asts is not None:
+                    print("AST:", print_ast(asts))
+                    eval_ast(asts)
+        except SyntaxError as e:
+            print(f"Syntax error: {e}")
+        except ValueError as e:
+            print(f"Value error: {e}")
+
     except FileNotFoundError:
         print(f"Error: The file '{file_path}' was not found.")
 

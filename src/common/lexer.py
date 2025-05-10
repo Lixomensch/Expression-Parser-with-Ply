@@ -9,26 +9,43 @@ reserved = {
     "def": "DEF",
     "return": "RETURN",
     "print": "PRINT",
-    "set": "SET",
+}
+
+functions = {
+    "sin": "SIN",
+    "cos": "COS",
+    "tan": "TAN",
+    "exp": "EXP",
+    "log": "LOG",
+    "sqrt": "SQRT",
+    "abs": "ABS",
 }
 
 tokens = (
-    "NUMBER",
-    "PLUS",
-    "MINUS",
-    "TIMES",
-    "DIVIDE",
-    "LPAREN",
-    "RPAREN",
-    "ID",
-    "EQUALS",
-    "POWER",
-    "LBRACE",
-    "RBRACE",
-    "COMMA",
-    "LT",
-    "GT",
-) + tuple(reserved.values())
+    (
+        "NUMBER",
+        "PLUS",
+        "MINUS",
+        "TIMES",
+        "DIVIDE",
+        "LPAREN",
+        "RPAREN",
+        "ID",
+        "EQUALS",
+        "POWER",
+        "LBRACE",
+        "RBRACE",
+        "COMMA",
+        "LT",
+        "GT",
+        "LE",
+        "GE",
+        "EQ",
+        "NE",
+    )
+    + tuple(reserved.values())
+    + tuple(functions.values())
+)
 
 # pylint: disable=C0103,W0107,W0613
 t_PLUS = r"\+"
@@ -45,6 +62,10 @@ t_RBRACE = r"\}"
 t_COMMA = r","
 t_LT = r"<"
 t_GT = r">"
+t_LE = r"<="
+t_GE = r">="
+t_EQ = r"=="
+t_NE = r"!="
 
 
 def t_ID(t):
@@ -72,6 +93,11 @@ def t_COMMENT_BLOCK(t):
     pass
 
 
+def t_newline(t):
+    r"\n+"
+    t.lexer.lineno += len(t.value)
+
+
 # pylint: enable=C0103,W0107,W0613
 
 
@@ -85,7 +111,7 @@ def t_error(t):
 
     :param t: The token containing the illegal character.
     """
-    print(f"Caractere ilegal: '{t.value[0]}'")
+    print(f"Character illegal '{t.value[0]}' at line {t.lineno}.")
     t.lexer.skip(1)
 
 
