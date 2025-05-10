@@ -2,6 +2,14 @@
 
 from ply import lex
 
+reserved = {
+    'if': 'IF',
+    'else': 'ELSE',
+    'while': 'WHILE',
+    'def': 'DEF',
+    'return': 'RETURN',
+}
+
 tokens = (
     "NUMBER",
     "PLUS",
@@ -13,7 +21,12 @@ tokens = (
     "ID",
     "EQUALS",
     "POWER",
-)
+    'LBRACE',
+    'RBRACE',
+    'COMMA',
+    'LT',
+    'GT',
+) + tuple(reserved.values())
 
 # pylint: disable=C0103,W0107,W0613
 t_PLUS = r"\+"
@@ -25,8 +38,16 @@ t_RPAREN = r"\)"
 t_EQUALS = r"="
 t_POWER = r"\^"
 t_ignore = " \t"
+t_LBRACE = r'\{'
+t_RBRACE = r'\}'
+t_COMMA = r','
+t_LT = r'<'
+t_GT = r'>'
 
-t_ID = r"[a-zA-Z_][a-zA-Z0-9_]*"
+def t_ID(t):
+    r"[a-zA-Z_][a-zA-Z0-9_]*"
+    t.type = reserved.get(t.value, 'ID')
+    return t
 
 
 def t_NUMBER(t):
