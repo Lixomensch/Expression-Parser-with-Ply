@@ -137,37 +137,37 @@ def p_statement_print_call(p):
 
 
 def p_statement_sin(p):
-    "statement : SIN LPAREN expression RPAREN"
+    "expression : SIN LPAREN expression RPAREN"
     p[0] = ("sin", p[3])
 
 
 def p_statement_cos(p):
-    "statement : COS LPAREN expression RPAREN"
+    "expression : COS LPAREN expression RPAREN"
     p[0] = ("cos", p[3])
 
 
 def p_statement_tan(p):
-    "statement : TAN LPAREN expression RPAREN"
+    "expression : TAN LPAREN expression RPAREN"
     p[0] = ("tan", p[3])
 
 
 def p_statement_exp(p):
-    "statement : EXP LPAREN expression RPAREN"
+    "expression : EXP LPAREN expression RPAREN"
     p[0] = ("exp", p[3])
 
 
 def p_statement_sqrt(p):
-    "statement : SQRT LPAREN expression RPAREN"
+    "expression : SQRT LPAREN expression RPAREN"
     p[0] = ("sqrt", p[3])
 
 
 def p_statement_log(p):
-    "statement : LOG LPAREN expression RPAREN"
+    "expression : LOG LPAREN expression RPAREN"
     p[0] = ("log", p[3])
 
 
 def p_statement_abs(p):
-    "statement : ABS LPAREN expression RPAREN"
+    "expression : ABS LPAREN expression RPAREN"
     p[0] = ("abs", p[3])
 
 

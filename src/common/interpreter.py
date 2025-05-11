@@ -130,7 +130,8 @@ def call_user_function(name, arg_nodes, env_to_use):
     """
 
     if name in math_functions:
-        return math_functions[name](*arg_nodes)
+        evaluated_args = [eval_ast(arg, env_to_use) for arg in arg_nodes]
+        return math_functions[name](*evaluated_args)
 
     if name not in global_functions:
         print(f"Erro: função '{name}' não definida.")
