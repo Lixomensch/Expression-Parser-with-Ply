@@ -67,7 +67,7 @@ def main():
     """
     print("Enter 'exit' to quit.")
     while True:
-        input_line = input("Enter expression or file path > ").strip()
+        input_line = input("cmd > ").strip()
 
         if input_line.lower() == "exit":
             print("Exiting the program.")
