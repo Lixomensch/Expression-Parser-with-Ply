@@ -3,7 +3,7 @@ include .env
 
 #* Python Rules
 run:
-	python src/main.py
+	python -m src.main
 
 #* Git Rules
 isort:

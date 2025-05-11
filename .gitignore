@@ -52,6 +52,7 @@ tests/*
 !tests/.gitkeep
 test/*
 backup/*
+src/common/parsetab.py
 
 # Ignore virtual environment directories
 venv/

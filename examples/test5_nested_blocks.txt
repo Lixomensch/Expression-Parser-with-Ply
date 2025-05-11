@@ -1,0 +1,8 @@
+x = 2
+if (x < 3) {
+    y = 10
+    while (y > 0) {
+        print(y)
+        y = y - 3
+    }
+}
